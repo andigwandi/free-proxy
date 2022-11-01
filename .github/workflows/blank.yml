@@ -38,12 +38,13 @@ jobs:
           pip install requests
 
       # Runs a set of commands using the runners shell
-      - run: curl -s ${{secrets.UPDATER}} >> proxy_list.txt
+      - run: curl -s "${{secrets.UPDATER}}" -o "proxy_list.txt"
       
       - name: Commit files
         run: |
           git config --local user.email ${{ secrets.GIT_EMAIL }}
           git config --local user.name ${{ secrets.GIT_NAME }}
+          git add .
           git commit -am "Updated Proxies"
           
       - name: Push changes
