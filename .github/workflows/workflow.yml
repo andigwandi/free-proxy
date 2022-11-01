@@ -31,9 +31,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests
 
-      # Runs a set of commands using the runners shell
+      # Generate the proxy list
       - run: curl -s "${{secrets.UPDATER}}" -o "proxy_list.txt"
       
+      # Commit the proxy list to repo
       - name: Commit files
         run: |
           git config --local user.email ${{ secrets.GIT_EMAIL }}
