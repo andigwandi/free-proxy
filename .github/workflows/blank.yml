@@ -1,0 +1,54 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Peoxy Updator
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+
+      # Install Python3
+      - name: Install Python 3
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      
+      # Install Dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      # Runs a set of commands using the runners shell
+      - run: curl -s -L ${{secrets.UPDATER}} -o proxy_list.txt
+      
+      - name: Commit files
+        run: |
+          git config --local user.email ${{ secrets.GIT_EMAIL }}
+          git config --local user.name ${{ secrets.GIT_NAME }}
+          git commit -am "Updated Proxies"
+          
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          CI: true
