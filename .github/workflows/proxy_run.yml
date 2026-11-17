@@ -15,6 +15,9 @@ on:
   workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
+permissions:
+  contents: write
+
 jobs:
   # This workflow contains a single job called "build"
   build:
@@ -41,18 +44,14 @@ jobs:
       # Generate the proxy list
       - run: curl -s "${{secrets.UPDATER}}" -o "proxy_list.txt"
       
-      # Commit the proxy list to repo
-      - name: Commit files
+      # Publish the proxy list as a single-commit orphan branch (no history growth)
+      - name: Publish to data branch
+        if: github.event_name != 'pull_request'
         run: |
-          git config --local user.email ${{ secrets.GIT_EMAIL }}
-          git config --local user.name ${{ secrets.GIT_NAME }}
-          git add .
-          git commit --amend -am "Updated Proxies" --date "$(date -R)"
-          
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          force: true
-        env:
-          CI: true
+          git config --local user.email "${{ secrets.GIT_EMAIL }}"
+          git config --local user.name "${{ secrets.GIT_NAME }}"
+          git checkout --orphan data-tmp
+          git rm -rf --cached . > /dev/null
+          git add -f proxy_list.txt
+          git commit -m "Updated Proxies"
+          git push --force origin HEAD:data
